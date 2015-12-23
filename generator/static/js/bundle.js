@@ -3,6 +3,21 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var classNames = require('classnames');
 
+var GradeSheet = React.createClass({displayName: "GradeSheet",
+  render: function() {
+    return (
+      React.createElement("div", null, 
+        React.createElement("h1", null, this.props.title)
+      )
+    );
+  }
+});
+
+ReactDOM.render(
+  React.createElement(GradeSheet, {title: "HW2"}),
+  document.getElementById('content')
+);
+
 },{"classnames":2,"react":160,"react-dom":4}],2:[function(require,module,exports){
 /*!
   Copyright (c) 2015 Jed Watson.

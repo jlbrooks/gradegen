@@ -18,7 +18,7 @@ module.exports = function(grunt) {
       dist: {
         options: {
           // babel transform for JSX
-          transform: ['babelify']
+          transform: ['reactify']
         },
         files: {
           'generator/static/js/bundle.js': 'generator/static/js/components/main.js'
