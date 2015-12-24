@@ -21,7 +21,8 @@ var Deduction = React.createClass({displayName: "Deduction",
   render: function() {
     var text = this.props.amount + ", " + this.props.text;
     return (
-      React.createElement("input", {type: "checkbox", value: this.props.key}, 
+      React.createElement("label", null, 
+        React.createElement("input", {type: "checkbox", value: this.props.key}), 
         text
       )
     );
@@ -66,12 +67,41 @@ var SectionList = React.createClass({displayName: "SectionList",
   }
 });
 
+var SectionForm = React.createClass({displayName: "SectionForm",
+  getInitialState: function() {
+    return {amount: '', text: ''};
+  },
+  handleAmountChange: function(e) {
+    this.setState({amount: e.target.value});
+  },
+  handleTextChange: function(e) {
+    this.setState({text: e.target.value});
+  },
+  render: function() {
+    return (
+      React.createElement("form", null, 
+        React.createElement("input", {
+          type: "number", 
+          placeholder: "Point value", 
+          value: this.state.amount, 
+          onChange: this.handleAmountChange}), 
+        React.createElement("input", {
+          type: "text", 
+          placeholder: "Explanation", 
+          value: this.state.text, 
+          onChange: this.handleTextChange})
+      )
+    );
+  }
+});
+
 var GradeSheet = React.createClass({displayName: "GradeSheet",
   render: function() {
     return (
       React.createElement("div", null, 
         React.createElement("h1", null, this.props.title), 
-        React.createElement(SectionList, {data: testData})
+        React.createElement(SectionList, {data: testData}), 
+        React.createElement(SectionForm, null)
       )
     );
   }
