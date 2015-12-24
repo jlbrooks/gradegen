@@ -3,11 +3,75 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var classNames = require('classnames');
 
+var testingDeductions = [
+  {id: 1, amount:-10, text: "Did not write tests"},
+  {id: 2, amount: -2, text: "Did not use mocks"}
+];
+var correctnessDeductions = [
+  {id: 1, amount:-10, text: "No correct outputs"},
+  {id: 2, amount: -4, text: "Partially incorrect outputs"}
+];
+
+var testData = [
+  {id: 1, total: 10, name:"Testing", deductions:testingDeductions},
+  {id: 2, total: 20, name:"Correctness", deductions:correctnessDeductions}
+];
+
+var Deduction = React.createClass({displayName: "Deduction",
+  render: function() {
+    var text = this.props.amount + ", " + this.props.text;
+    return (
+      React.createElement("input", {type: "checkbox", value: this.props.key}, 
+        text
+      )
+    );
+  }
+});
+
+var Section = React.createClass({displayName: "Section",
+  render: function() {
+    var deductionNodes = this.props.deductions.map(function(deduction) {
+      return (
+        React.createElement(Deduction, {amount: deduction.amount, text: deduction.text, key: deduction.id}
+        )
+      );
+    });
+    return (
+      React.createElement("div", null, 
+        React.createElement("h3", null, this.props.name), 
+        React.createElement("div", null, 
+          deductionNodes
+        )
+      )
+    );
+  }
+});
+
+var SectionList = React.createClass({displayName: "SectionList",
+  render: function() {
+    var sectionNodes = this.props.data.map(function(section) {
+      return (
+        React.createElement(Section, {total: section.total, 
+                 deductions: section.deductions, 
+                 name: section.name, 
+                 key: section.id}
+        )
+      );
+    });
+    return (
+      React.createElement("div", null, 
+        sectionNodes
+      )
+    );
+  }
+});
+
 var GradeSheet = React.createClass({displayName: "GradeSheet",
   render: function() {
     return (
       React.createElement("div", null, 
-        React.createElement("h1", null, this.props.title)
+        React.createElement("h1", null, this.props.title), 
+        React.createElement(SectionList, {data: testData})
       )
     );
   }
