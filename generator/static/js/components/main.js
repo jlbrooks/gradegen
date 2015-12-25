@@ -1,6 +1,20 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var classNames = require('classnames');
+var marked = require('marked');
+
+function generateMarkdown(sections) {
+  var complete = "Title\n=======\n\n";
+  sections.forEach(function(section) {
+    complete += "#### " + section.name + " (" + section.total + "/" + section.possible + ")\n\n";
+
+    section.deductions.forEach(function(deduction) {
+      complete += "* " + String(deduction.amount) + ", " + deduction.text + "\n\n";
+    });
+  });
+
+  return complete;
+}
 
 var testingDeductions = [
   {id: 1, amount:-10, text: "Did not write tests"},
@@ -12,8 +26,8 @@ var correctnessDeductions = [
 ];
 
 var testData = [
-  {id: 1, total: 10, name:"Testing", deductions:testingDeductions},
-  {id: 2, total: 20, name:"Correctness", deductions:correctnessDeductions}
+  {id: 1, possible: 10, total: 6, name:"Testing", deductions:testingDeductions},
+  {id: 2, possible: 20, total: 15, name:"Correctness", deductions:correctnessDeductions}
 ];
 
 var Deduction = React.createClass({
@@ -72,7 +86,7 @@ var SectionList = React.createClass({
   render: function() {
     var sectionNodes = this.props.data.map(function(section) {
       return (
-        <Section total={section.total} 
+        <Section possible={section.possible} 
                  deductions={section.deductions}
                  name={section.name}
                  key={section.id}>
@@ -116,13 +130,33 @@ var SectionForm = React.createClass({
   }
 });
 
+var GradeSheetOutput = React.createClass({
+  rawMarkup: function() {
+    var raw = marked(this.props.markdown, {sanitize: true});
+    return { __html: raw };
+  },
+
+  render: function() {
+    return (
+      <div>
+        <h1>Markdown Output:</h1>
+        <span dangerouslySetInnerHTML={this.rawMarkup()} />
+      </div>
+    );
+  }
+});
+
 var GradeSheet = React.createClass({
+  getInitialState: function() {
+    return {sections: []};
+  },
   render: function() {
     return (
       <div>
         <h1>{this.props.title}</h1>
         <SectionList data={testData}/>
         <SectionForm />
+        <GradeSheetOutput markdown={generateMarkdown(testData)} />
       </div>
     );
   }
