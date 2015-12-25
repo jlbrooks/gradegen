@@ -30,6 +30,15 @@ var Deduction = React.createClass({displayName: "Deduction",
 });
 
 var Section = React.createClass({displayName: "Section",
+  getInitialState: function() {
+    return {newAmount: '', newText: ''};
+  },
+  handleAmountChange: function(e) {
+    this.setState({newAmount: e.target.value});
+  },
+  handleTextChange: function(e) {
+    this.setState({newText: e.target.value});
+  },
   render: function() {
     var deductionNodes = this.props.deductions.map(function(deduction) {
       return (
@@ -42,6 +51,18 @@ var Section = React.createClass({displayName: "Section",
         React.createElement("h3", null, this.props.name), 
         React.createElement("div", null, 
           deductionNodes
+        ), 
+        React.createElement("form", null, 
+          React.createElement("input", {
+            type: "number", 
+            placeholder: "Amount", 
+            value: this.state.newAmount, 
+            onChange: this.handleAmountChange}), 
+          React.createElement("input", {
+            type: "text", 
+            placeholder: "New deduction...", 
+            value: this.state.newText, 
+            onChange: this.handleTextChange})
         )
       )
     );
@@ -80,6 +101,7 @@ var SectionForm = React.createClass({displayName: "SectionForm",
   render: function() {
     return (
       React.createElement("form", null, 
+        React.createElement("h4", null, "New Section"), 
         React.createElement("input", {
           type: "number", 
           placeholder: "Point value", 
