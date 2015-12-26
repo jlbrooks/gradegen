@@ -14,8 +14,6 @@ function generateMarkdown(sections) {
     });
   });
 
-  console.log(complete);
-
   return complete;
 }
 
@@ -106,28 +104,42 @@ var SectionList = React.createClass({displayName: "SectionList",
 
 var SectionForm = React.createClass({displayName: "SectionForm",
   getInitialState: function() {
-    return {amount: '', text: ''};
+    return {total: '', name: ''};
   },
   handleAmountChange: function(e) {
-    this.setState({amount: e.target.value});
+    this.setState({total: e.target.value});
   },
   handleTextChange: function(e) {
-    this.setState({text: e.target.value});
+    this.setState({name: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var total = this.state.total.trim();
+    var name = this.state.name.trim();
+    // Must be filled out
+    if (!name || !total) {
+      return;
+    }
+    // Callback in the parent
+    this.props.onNewSection({total: total, possible: total, name: name, deductions:[]});
+    // Reset the state
+    this.setState({total: '', name: ''});
   },
   render: function() {
     return (
-      React.createElement("form", null, 
+      React.createElement("form", {onSubmit: this.handleSubmit}, 
         React.createElement("h4", null, "New Section"), 
         React.createElement("input", {
           type: "number", 
           placeholder: "Point value", 
-          value: this.state.amount, 
+          value: this.state.total, 
           onChange: this.handleAmountChange}), 
         React.createElement("input", {
-          type: "text", 
+          type: "name", 
           placeholder: "Explanation", 
-          value: this.state.text, 
-          onChange: this.handleTextChange})
+          value: this.state.name, 
+          onChange: this.handleTextChange}), 
+        React.createElement("input", {type: "submit", value: "Add Section"})
       )
     );
   }
@@ -151,15 +163,20 @@ var GradeSheetOutput = React.createClass({displayName: "GradeSheetOutput",
 
 var GradeSheet = React.createClass({displayName: "GradeSheet",
   getInitialState: function() {
-    return {sections: []};
+    return {sections: testData};
+  },
+  onSectionAdded: function(section) {
+    var currentSections = this.state.sections;
+    currentSections.push(section);
+    this.setState({sections: currentSections});
   },
   render: function() {
     return (
       React.createElement("div", null, 
         React.createElement("h1", null, this.props.title), 
-        React.createElement(SectionList, {data: testData}), 
-        React.createElement(SectionForm, null), 
-        React.createElement(GradeSheetOutput, {markdown: generateMarkdown(testData)})
+        React.createElement(SectionList, {data: this.state.sections}), 
+        React.createElement(SectionForm, {onNewSection: this.onSectionAdded}), 
+        React.createElement(GradeSheetOutput, {markdown: generateMarkdown(this.state.sections)})
       )
     );
   }
