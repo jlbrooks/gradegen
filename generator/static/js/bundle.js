@@ -43,18 +43,64 @@ var Deduction = React.createClass({displayName: "Deduction",
   }
 });
 
-var Section = React.createClass({displayName: "Section",
+var DeductionForm = React.createClass({displayName: "DeductionForm",
   getInitialState: function() {
-    return {newAmount: '', newText: ''};
+    return {amount: '', text: ''};
   },
   handleAmountChange: function(e) {
-    this.setState({newAmount: e.target.value});
+    this.setState({amount: e.target.value});
   },
   handleTextChange: function(e) {
-    this.setState({newText: e.target.value});
+    this.setState({text: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var amount = this.state.amount.trim();
+    var text = this.state.text.trim();
+    // Must be filled out
+    if (!text || !amount) {
+      return;
+    }
+    // Callback in the parent
+    this.props.onNewDeduction({amount: amount, text: text});
+    // Reset the state
+    this.setState({amount: '', text: ''});
   },
   render: function() {
-    var deductionNodes = this.props.deductions.map(function(deduction) {
+    return (
+      React.createElement("form", {onSubmit: this.handleSubmit}, 
+        React.createElement("input", {
+          type: "number", 
+          placeholder: "Amount", 
+          value: this.state.amount, 
+          onChange: this.handleAmountChange}), 
+        React.createElement("input", {
+          type: "text", 
+          placeholder: "New deduction...", 
+          value: this.state.text, 
+          onChange: this.handleTextChange}), 
+        React.createElement("input", {type: "submit", value: "Add"})
+      )
+    );
+  }
+});
+
+var Section = React.createClass({displayName: "Section",
+  getInitialState: function() {
+    return {
+      possible: this.props.possible,
+      name: this.props.name,
+      total: this.props.total,
+      deductions: this.props.deductions
+    }
+  },
+  onNewDeduction: function(deduction) {
+    var deductions = this.state.deductions;
+    deductions.push(deduction);
+    this.setState({deductions: deductions});
+  },
+  render: function() {
+    var deductionNodes = this.state.deductions.map(function(deduction) {
       return (
         React.createElement(Deduction, {amount: deduction.amount, text: deduction.text, key: deduction.id}
         )
@@ -62,22 +108,11 @@ var Section = React.createClass({displayName: "Section",
     });
     return (
       React.createElement("div", null, 
-        React.createElement("h3", null, this.props.name), 
+        React.createElement("h3", null, this.state.name, " (", this.state.total, "/", this.state.possible, ")"), 
         React.createElement("div", null, 
           deductionNodes
         ), 
-        React.createElement("form", null, 
-          React.createElement("input", {
-            type: "number", 
-            placeholder: "Amount", 
-            value: this.state.newAmount, 
-            onChange: this.handleAmountChange}), 
-          React.createElement("input", {
-            type: "text", 
-            placeholder: "New deduction...", 
-            value: this.state.newText, 
-            onChange: this.handleTextChange})
-        )
+        React.createElement(DeductionForm, {onNewDeduction: this.onNewDeduction})
       )
     );
   }
@@ -89,6 +124,7 @@ var SectionList = React.createClass({displayName: "SectionList",
       return (
         React.createElement(Section, {possible: section.possible, 
                  deductions: section.deductions, 
+                 total: section.total, 
                  name: section.name, 
                  key: section.id}
         )

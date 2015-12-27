@@ -42,18 +42,64 @@ var Deduction = React.createClass({
   }
 });
 
-var Section = React.createClass({
+var DeductionForm = React.createClass({
   getInitialState: function() {
-    return {newAmount: '', newText: ''};
+    return {amount: '', text: ''};
   },
   handleAmountChange: function(e) {
-    this.setState({newAmount: e.target.value});
+    this.setState({amount: e.target.value});
   },
   handleTextChange: function(e) {
-    this.setState({newText: e.target.value});
+    this.setState({text: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var amount = this.state.amount.trim();
+    var text = this.state.text.trim();
+    // Must be filled out
+    if (!text || !amount) {
+      return;
+    }
+    // Callback in the parent
+    this.props.onNewDeduction({amount: amount, text: text});
+    // Reset the state
+    this.setState({amount: '', text: ''});
   },
   render: function() {
-    var deductionNodes = this.props.deductions.map(function(deduction) {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <input
+          type="number"
+          placeholder="Amount"
+          value={this.state.amount}
+          onChange={this.handleAmountChange}/>
+        <input
+          type="text"
+          placeholder="New deduction..."
+          value={this.state.text}
+          onChange={this.handleTextChange}/>
+        <input type="submit" value="Add" />
+      </form>
+    );
+  }
+});
+
+var Section = React.createClass({
+  getInitialState: function() {
+    return {
+      possible: this.props.possible,
+      name: this.props.name,
+      total: this.props.total,
+      deductions: this.props.deductions
+    }
+  },
+  onNewDeduction: function(deduction) {
+    var deductions = this.state.deductions;
+    deductions.push(deduction);
+    this.setState({deductions: deductions});
+  },
+  render: function() {
+    var deductionNodes = this.state.deductions.map(function(deduction) {
       return (
         <Deduction amount={deduction.amount} text={deduction.text} key={deduction.id}>
         </Deduction>
@@ -61,22 +107,11 @@ var Section = React.createClass({
     });
     return (
       <div>
-        <h3>{this.props.name}</h3>
+        <h3>{this.state.name} ({this.state.total}/{this.state.possible})</h3>
         <div>
           {deductionNodes}
         </div>
-        <form>
-          <input
-            type="number"
-            placeholder="Amount"
-            value={this.state.newAmount}
-            onChange={this.handleAmountChange}/>
-          <input
-            type="text"
-            placeholder="New deduction..."
-            value={this.state.newText}
-            onChange={this.handleTextChange}/>
-        </form>
+        <DeductionForm onNewDeduction={this.onNewDeduction} />
       </div>
     );
   }
@@ -88,6 +123,7 @@ var SectionList = React.createClass({
       return (
         <Section possible={section.possible} 
                  deductions={section.deductions}
+                 total={section.total}
                  name={section.name}
                  key={section.id}>
         </Section>
