@@ -43,8 +43,9 @@ var Deduction = React.createClass({
     };
   },
   handleCheckChange: function(e) {
+    var checked = e.target.checked;
     this.setState({checked: e.target.checked});
-    this.props.onCheckChange(this.state);
+    this.props.onCheckChange(this.state.id, checked);
   },
   render: function() {
     var text = this.state.amount + ", " + this.state.text;
@@ -113,8 +114,8 @@ var Section = React.createClass({
     deductions.push(deduction);
     this.setState({deductions: deductions});
   },
-  onCheckChange: function(deduction) {
-    this.props.onCheckChange(this.props.id, deduction)
+  onCheckChange: function(dedId, checked) {
+    this.props.onCheckChange(this.props.id, dedId, checked)
   },
   render: function() {
     var deductionNodes = this.state.deductions.map(function(deduction) {
@@ -231,28 +232,22 @@ var GradeSheet = React.createClass({
     currentSections.push(section);
     this.setState({sections: currentSections});
   },
-  onCheckChange: function(secId, deduction) {
+  onCheckChange: function(secId, dedId, checked) {
     var sections = this.state.sections;
     // Find the correct section
-    console.log(sections);
     var section = _.find(sections, function(sec) {return (sec.id == secId)});
-    // Remove that section from the array
-    var i = _.indexOf(sections, section);
-    console.log(section);
-    if (i < 0) return; // Should never happen
-    sections.splice(i,1);
+    // Find the section array index
+    var secIndex = _.indexOf(sections, section);
+    if (secIndex < 0) return; // Should never happen
 
-    // Find and remove the deduction with the current key
-    var ded = _.find(section.deductions, function(ded) {return (ded.id == deduction.id)});
-    console.log(ded);
-    var i = _.indexOf(section.deductions, ded);
-    if (i < 0) return; // Should never happen
-    section.deductions.splice(i,1);
-    // Add the new deduction
-    section.deductions.push(deduction);
+    // Find the deduction with the current key
+    var ded = _.find(section.deductions, function(ded) {return (ded.id == dedId)});
+    var dedIndex = _.indexOf(section.deductions, ded);
+    if (dedIndex < 0) return; // Should never happen
+    // Set the checked value for the deduction
+    section.deductions[dedIndex].checked = checked
     // Set the state with the new section
-    sections.push(section);
-    console.log(sections);
+    sections[secIndex] = section;
     this.setState({sections: sections});
   },
   render: function() {
