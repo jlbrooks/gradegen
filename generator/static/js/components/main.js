@@ -2,6 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var classNames = require('classnames');
 var marked = require('marked');
+var _ = require('underscore');
 
 function generateMarkdown(sections) {
   var complete = "Title\n=======\n\n";
@@ -9,7 +10,9 @@ function generateMarkdown(sections) {
     complete += "#### " + section.name + " (" + section.total + "/" + section.possible + ")\n\n";
 
     section.deductions.forEach(function(deduction) {
-      complete += "* " + String(deduction.amount) + ", " + deduction.text + "\n\n";
+      if (deduction.checked) {
+        complete += "* " + String(deduction.amount) + ", " + deduction.text + "\n\n";
+      }
     });
   });
 
@@ -17,12 +20,12 @@ function generateMarkdown(sections) {
 }
 
 var testingDeductions = [
-  {id: 1, amount:-10, text: "Did not write tests"},
-  {id: 2, amount: -2, text: "Did not use mocks"}
+  {id: 1, amount:-10, text: "Did not write tests", checked: false},
+  {id: 2, amount: -2, text: "Did not use mocks", checked: true}
 ];
 var correctnessDeductions = [
-  {id: 1, amount:-10, text: "No correct outputs"},
-  {id: 2, amount: -4, text: "Partially incorrect outputs"}
+  {id: 1, amount:-10, text: "No correct outputs", checked: false},
+  {id: 2, amount: -4, text: "Partially incorrect outputs", checked: false}
 ];
 
 var testData = [
@@ -31,11 +34,23 @@ var testData = [
 ];
 
 var Deduction = React.createClass({
+  getInitialState: function(e) {
+    return {
+      amount: this.props.amount,
+      text: this.props.text,
+      checked: this.props.checked,
+      id: this.props.id
+    };
+  },
+  handleCheckChange: function(e) {
+    this.setState({checked: e.target.checked});
+    this.props.onCheckChange(this.state);
+  },
   render: function() {
-    var text = this.props.amount + ", " + this.props.text;
+    var text = this.state.amount + ", " + this.state.text;
     return (
       <label>
-        <input type="checkbox" value={this.props.key} />
+        <input type="checkbox" onChange={this.handleCheckChange} checked={this.state.checked}/>
         {text}
       </label>
     );
@@ -98,13 +113,22 @@ var Section = React.createClass({
     deductions.push(deduction);
     this.setState({deductions: deductions});
   },
+  onCheckChange: function(deduction) {
+    this.props.onCheckChange(this.props.id, deduction)
+  },
   render: function() {
     var deductionNodes = this.state.deductions.map(function(deduction) {
       return (
-        <Deduction amount={deduction.amount} text={deduction.text} key={deduction.id}>
+        <Deduction 
+          amount={deduction.amount}
+          text={deduction.text}
+          checked={deduction.checked}
+          id={deduction.id}
+          key={deduction.id}
+          onCheckChange={this.onCheckChange}>
         </Deduction>
       );
-    });
+    }.bind(this));
     return (
       <div>
         <h3>{this.state.name} ({this.state.total}/{this.state.possible})</h3>
@@ -125,10 +149,12 @@ var SectionList = React.createClass({
                  deductions={section.deductions}
                  total={section.total}
                  name={section.name}
-                 key={section.id}>
+                 id={section.id}
+                 key={section.id}
+                 onCheckChange={this.props.onCheckChange}>
         </Section>
       );
-    });
+    }.bind(this))
     return (
       <div>
         {sectionNodes}
@@ -205,11 +231,37 @@ var GradeSheet = React.createClass({
     currentSections.push(section);
     this.setState({sections: currentSections});
   },
+  onCheckChange: function(secId, deduction) {
+    var sections = this.state.sections;
+    // Find the correct section
+    console.log(sections);
+    var section = _.find(sections, function(sec) {return (sec.id == secId)});
+    // Remove that section from the array
+    var i = _.indexOf(sections, section);
+    console.log(section);
+    if (i < 0) return; // Should never happen
+    sections.splice(i,1);
+
+    // Find and remove the deduction with the current key
+    var ded = _.find(section.deductions, function(ded) {return (ded.id == deduction.id)});
+    console.log(ded);
+    var i = _.indexOf(section.deductions, ded);
+    if (i < 0) return; // Should never happen
+    section.deductions.splice(i,1);
+    // Add the new deduction
+    section.deductions.push(deduction);
+    // Set the state with the new section
+    sections.push(section);
+    console.log(sections);
+    this.setState({sections: sections});
+  },
   render: function() {
     return (
       <div>
         <h1>{this.props.title}</h1>
-        <SectionList data={this.state.sections}/>
+        <SectionList 
+          data={this.state.sections}
+          onCheckChange={this.onCheckChange} />
         <SectionForm onNewSection={this.onSectionAdded} />
         <GradeSheetOutput markdown={generateMarkdown(this.state.sections)} />
       </div>
