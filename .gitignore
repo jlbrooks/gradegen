@@ -1,6 +1,10 @@
 __pycache__/ 
 *.pyc
 *.pyo
+
+migrations/
+*.sqlite3
+
 bower/
 node_modules/
 
