@@ -29,8 +29,8 @@ var correctnessDeductions = [
 ];
 
 var testData = [
-  {id: 1, possible: 10, total: 6, name:"Testing", deductions:testingDeductions},
-  {id: 2, possible: 20, total: 15, name:"Correctness", deductions:correctnessDeductions}
+  {id: 1, possible: 10, total: 8, name:"Testing", deductions:testingDeductions},
+  {id: 2, possible: 20, total: 20, name:"Correctness", deductions:correctnessDeductions}
 ];
 
 var Deduction = React.createClass({
@@ -70,7 +70,7 @@ var DeductionForm = React.createClass({
   },
   handleSubmit: function(e) {
     e.preventDefault();
-    var amount = this.state.amount.trim();
+    var amount = parseInt(this.state.amount.trim());
     var text = this.state.text.trim();
     // Must be filled out
     if (!text || !amount) {
@@ -176,7 +176,7 @@ var SectionForm = React.createClass({
   },
   handleSubmit: function(e) {
     e.preventDefault();
-    var total = this.state.total.trim();
+    var total = parseInt(this.state.total.trim());
     var name = this.state.name.trim();
     // Must be filled out
     if (!name || !total) {
@@ -245,7 +245,14 @@ var GradeSheet = React.createClass({
     var dedIndex = _.indexOf(section.deductions, ded);
     if (dedIndex < 0) return; // Should never happen
     // Set the checked value for the deduction
-    section.deductions[dedIndex].checked = checked
+    var deduction = section.deductions[dedIndex];
+    deduction.checked = checked;
+    // Add/remove points from the total
+    if (checked) {
+      section.total += deduction.amount;
+    } else {
+      section.total -= deduction.amount;
+    }
     // Set the state with the new section
     sections[secIndex] = section;
     this.setState({sections: sections});
