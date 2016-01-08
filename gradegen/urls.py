@@ -20,5 +20,4 @@ from generator import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^/gradesheet/(?P<gId>[0-9]+)$', views.gradesheet, name='gradesheet'),
-    url(r'^/gradesheet/')
 ]
